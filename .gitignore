@@ -1,0 +1,17 @@
+# Local environment files may contain credentials. Commit only the safe template.
+.env
+.env.*
+!.env.example
+!.env.template
+
+# Local Python environment and generated files
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+
+# Local tooling
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
