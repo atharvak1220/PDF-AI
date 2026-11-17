@@ -1,32 +1,45 @@
-import os
 
-from dotenv import load_dotenv
+from pathlib import Path
+
 from pypdf import PdfReader
 
-PDF_PATH = "/home/atharvak/Programming/Learning/AI/PDF project/PDF-AI/data/Tax.pdf"
-GEMINI_URL = (
-    "https://generativelanguage.googleapis.com/v1beta/"
-    "models/gemini-3.5-flash-lite:generateContent"
-)
 
-load_dotenv()
+def extract_pdf(pdf_path):
+    pdf_path = Path(pdf_path)
 
-api_key = os.getenv("GEMINI_API_KEY")
-if not api_key:
-    raise ValueError("GEMINI_API_KEY is not set. Add it to your local .env file.")
+    if not pdf_path.is_file():
+        raise FileNotFoundError(f"PDF not found: {pdf_path}")
 
-reader = PdfReader(PDF_PATH)
+    reader = PdfReader(pdf_path)
+    pages = []
 
-pdf_text = ""
+    for page_number, page in enumerate(reader.pages, start=1):
+        text = page.extract_text()
 
-for page in reader.pages:
-    text = page.extract_text()
+        if not text or not text.strip():
+            continue
 
-    if text:
-        pdf_text += text + "\n\n"
+        pages.append({
+            "text": text.strip(),
+            "source_file": pdf_path.name,
+            "page_number": page_number,
+        })
 
-if not pdf_text:
-    raise ValueError("No extractable text was found in the PDF.")
+    if not pages:
+        raise ValueError("No extractable text was found in the PDF.")
 
-print(f"Loaded {len(reader.pages)} page(s) from the PDF.")
+    return pages
 
+
+if __name__ == "__main__":
+    pdf_path = Path(__file__).resolve().parents[1] / "data" / "Tax.pdf"
+
+    pages = extract_pdf(pdf_path)
+
+    print(f"Extracted text from {len(pages)} page(s).")
+
+    for page in pages:
+        print(
+            f"Page {page['page_number']}: "
+            f"{len(page['text'])} characters"
+        )
